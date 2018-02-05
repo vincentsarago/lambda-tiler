@@ -20,7 +20,7 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 RUN pip3 install numpy wheel cython --no-binary numpy
 
 # Install Python dependencies
-RUN pip3 install rio-tiler==1.0a1 lambda_proxy numexpr --no-binary numpy -t /tmp/vendored -U
+RUN pip3 install rio-tiler==1.0a3 lambda_proxy==0.0.3 --no-binary numpy -t /tmp/vendored -U
 
 # Reduce Lambda package size to fit the 250Mb limit
 # Mostly based on https://github.com/jamesandersen/aws-machine-learning-demo
@@ -44,6 +44,7 @@ RUN find /tmp/vendored -type f -a -name '*.py' -print0 | xargs -0 rm -f
 
 RUN du -sh /tmp/vendored
 
+RUN echo "copy app"
 COPY app /tmp/vendored/app
 
 # Create archive

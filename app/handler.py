@@ -41,13 +41,20 @@ def tile(tile_z, tile_x, tile_y, tileformat):
     if bands:
         bands = tuple(int(s) for s in re.findall(r'\d+', bands))
 
-    tilesize = query_args.get('tile', 256)
+    tilesize = query_args.get('tile', 512)
     tilesize = int(tilesize) if isinstance(tilesize, str) else tilesize
 
     nodata = query_args.get('nodata')
+    if nodata is not None:
+        nodata = int(nodata)
 
-    tile = main.tile(address, tile_x, tile_y, tile_z, bands, tilesize=tilesize)
-    tile = array_to_img(tile, tileformat, nodata=nodata)
+    alpha = query_args.get('alpha')
+    if alpha is not None:
+        alpha = int(alpha)
+
+    tile, mask = main.tile(address, tile_x, tile_y, tile_z, bands, tilesize=tilesize, nodata=nodata, alpha=alpha)
+    tile = array_to_img(tile, tileformat, mask=mask)
+
     if tileformat == 'jpg':
         tileformat = 'jpeg'
 

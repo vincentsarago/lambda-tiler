@@ -14,7 +14,6 @@ provider:
     VSI_CACHE_SIZE: 536870912
     GDAL_DISABLE_READDIR_ON_OPEN: true
 
-
 custom:
   apigwBinary:
     types:

@@ -5,6 +5,7 @@
     <title>example</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://code.jquery.com/jquery-3.2.1.min.js'></script>
+    <script src='https://npmcdn.com/@turf/turf@3.5.1/turf.min.js'></script>
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.43.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.43.0/mapbox-gl.css' rel='stylesheet' />
     <style>
@@ -45,6 +46,30 @@
                 "id": "tiles",
                 "source": "tiles",
                 "type": "raster"
+            });
+
+            const geojson = {
+              'type': 'FeatureCollection',
+              'features': [turf.bboxPolygon(data.bounds)]
+            };
+
+            map.addSource('tile', {
+              'type': 'geojson',
+              'data': geojson
+            });
+
+            map.addLayer({
+                'id': 'tile',
+                'type': 'line',
+                'source': 'tile',
+                'layout': {
+                  'line-cap': 'round',
+                  'line-join': 'round'
+                },
+                'paint': {
+                  'line-color': '#1b34db',
+                  'line-width': 2
+                }
             });
 
             const extent = data.bounds;
