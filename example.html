@@ -17,6 +17,7 @@
 
     <div id='map'></div>
     <script>
+
       var endpoint = '{YOUR-API-GATEWAY-ENDPOINT}'; //e.g https://xxxxxxxxxx.execute-api.xxxxxxx.amazonaws.com/production
 
       var map = new mapboxgl.Map({
@@ -26,7 +27,7 @@
           zoom: 9
       });
 
-      var url = 'http://oin-hotosm.s3.amazonaws.com/5a324a622553e6000ce5aaf5/0/3fa181a1-425c-4e53-b49f-ea72884da097.tif';
+      var url = 'https://oin-hotosm.s3.amazonaws.com/5ac626e091b5310010e0d482/0/5ac626e091b5310010e0d483.tif';
 
       map.on('load', () => {
 
@@ -37,7 +38,7 @@
 
             map.addSource('tiles', {
                 "type": "raster",
-                "tiles": [`${endpoint}/tiles/{z}/{x}/{y}.png?url=${url}`],
+                "tiles": [`${endpoint}/tiles/{z}/{x}/{y}.png?url=${url}&nodata=0&tile=256`],
                 "tileSize": 256,
                 "bounds": data.bounds
             });

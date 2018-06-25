@@ -14,6 +14,8 @@ provider:
     VSI_CACHE_SIZE: 536870912
     GDAL_DISABLE_READDIR_ON_OPEN: true
 
+  deploymentBucket: remotepixel-${self:provider.region}
+
 custom:
   apigwBinary:
     types:
