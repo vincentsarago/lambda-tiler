@@ -1,14 +1,24 @@
-viewer_template="""
+viewer_template = """
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset='utf-8' />
     <title>example</title>
-    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://code.jquery.com/jquery-3.2.1.min.js'></script>
-    <script src='https://npmcdn.com/@turf/turf@3.5.1/turf.min.js'></script>
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.43.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.43.0/mapbox-gl.css' rel='stylesheet' />
+    <meta
+      name='viewport'
+      content='initial-scale=1,maximum-scale=1,user-scalable=no'
+    />
+    <script src='https://code.jquery.com/jquery-3.2.1.min.js'>
+    </script>
+    <script src='https://npmcdn.com/@turf/turf@3.5.1/turf.min.js'>
+    </script>
+    <script
+      src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.43.0/mapbox-gl.js'>
+    </script>
+    <link
+      href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.43.0/mapbox-gl.css'
+      rel='stylesheet'
+    />
     <style>
       body {{ margin:0; padding:0; }}
       #map {{ position:absolute; top:0; bottom:0; width:100%; }}
@@ -19,7 +29,7 @@ viewer_template="""
     <div id='map'></div>
     <script>
 
-      var endpoint = '{endpoint}'; //e.g https://xxxxxxxxxx.execute-api.xxxxxxx.amazonaws.com/production
+      var endpoint = '{endpoint}';
 
       var map = new mapboxgl.Map({{
           container: 'map',
@@ -39,7 +49,9 @@ viewer_template="""
 
             map.addSource('tiles', {{
                 "type": "raster",
-                "tiles": [`${{endpoint}}/tiles/{{z}}/{{x}}/{{y}}.png?url=${{url}}&nodata=0`],
+                "tiles": [
+                  `${{endpoint}}/tiles/{{z}}/{{x}}/{{y}}.png?url=${{url}}&nodata=0`
+                ],
                 "tileSize": 256,
                 "bounds": data.bounds
             }});
@@ -75,7 +87,12 @@ viewer_template="""
             }});
 
             const extent = data.bounds;
-            const llb = mapboxgl.LngLatBounds.convert([[extent[0],extent[1]], [extent[2],extent[3]]]);
+            const llb = mapboxgl.LngLatBounds.convert(
+              [
+                [extent[0],extent[1]],
+                [extent[2],extent[3]]
+              ]
+            );
             map.fitBounds(llb, {{padding: 50}});
 
           }});
