@@ -39,12 +39,42 @@ sls deploy
 *Inputs:*
 - url: any valid url
 
+*Returns:*
+A JSON object with the bounds of the tiff.
+
 *example:*
 ```
-$ curl {you-endpoint}/bounds?url=https://any-file.on/the-internet.tif
+$ curl {your-endpoint}/bounds?url=https://any-file.on/the-internet.tif
 
   {"url": "https://any-file.on/the-internet.tif", "bounds": [90.47546096087822, 23.803014490532913, 90.48441996322644, 23.80577697976369]}
 ```
+
+## /metadata
+
+*Inputs:*
+- url: any valid url
+
+*Returns:*
+A JSON object with metadata about the tiff.
+
+*example:*
+```
+$ curl {your-endpoint}/metadata?url=https://any-file.on/the-internet.tif
+```
+
+## /viewer
+
+*Inputs:*
+- url: any valid url
+
+*Returns:*
+A Leaflet viewer that allows you to pan & zoom the tiff.
+
+*example:*
+```
+$ curl {your-endpoint}/metadata?url=https://any-file.on/the-internet.tif
+```
+
 
 #### /tiles/z/x/y.png
 
@@ -57,6 +87,20 @@ $ curl {you-endpoint}/bounds?url=https://any-file.on/the-internet.tif
 
 *example:*
 ```
-$ curl {you-endpoint}/tiles/7/10/10.png?url=https://any-file.on/the-internet.tif
+$ curl {your-endpoint}/tiles/7/10/10.png?url=https://any-file.on/the-internet.tif
 
 ```
+
+## /viewer
+
+*Inputs:*
+None
+
+*Returns:*
+A Leaflet viewer that allows you to pan & zoom on a sample tiff hosted on s3.
+
+*example:*
+```
+$ curl {your-endpoint}/viewer
+```
+
