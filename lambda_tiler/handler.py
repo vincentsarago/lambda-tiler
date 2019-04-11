@@ -18,6 +18,8 @@ from rio_color.utils import scale_dtype, to_math_type
 
 from lambda_proxy.proxy import API
 
+from lambda_tiler.viewer import viewer_template
+
 APP = API(app_name="cogeo-tiler")
 
 
@@ -58,6 +60,32 @@ def _postprocess(
 
 class TilerError(Exception):
     """Base exception class."""
+
+@APP.route(
+    "/viewer",
+    methods=["GET"],
+    cors=True,
+    payload_compression_method="gzip",
+    binary_b64encode=True,
+)
+@APP.pass_event
+def viewer(
+    event: object, 
+    url: str
+) -> Tuple[str, str, str]:
+    """Handle Viewer requests."""
+    print(event)
+    endpoint = "https://{domain}/{stage}".format(
+        domain=event['requestContext']['domainName'],
+        stage=event['requestContext']['stage']
+    )
+    print(endpoint)
+    html = viewer_template.format(
+        endpoint=endpoint,
+        cogurl=url
+    )
+    print(html)
+    return ("OK", "text/html", html)
 
 
 @APP.route(

@@ -1,3 +1,4 @@
+viewer_template="""
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,8 +10,8 @@
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.43.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.43.0/mapbox-gl.css' rel='stylesheet' />
     <style>
-      body { margin:0; padding:0; }
-      #map { position:absolute; top:0; bottom:0; width:100%; }
+      body {{ margin:0; padding:0; }}
+      #map {{ position:absolute; top:0; bottom:0; width:100%; }}
     </style>
   </head>
   <body>
@@ -18,69 +19,70 @@
     <div id='map'></div>
     <script>
 
-      var endpoint = '{YOUR-API-GATEWAY-ENDPOINT}'; //e.g https://xxxxxxxxxx.execute-api.xxxxxxx.amazonaws.com/production
+      var endpoint = '{endpoint}'; //e.g https://xxxxxxxxxx.execute-api.xxxxxxx.amazonaws.com/production
 
-      var map = new mapboxgl.Map({
+      var map = new mapboxgl.Map({{
           container: 'map',
-          style: { version: 8, sources: {}, layers: [] },
+          style: {{ version: 8, sources: {{}}, layers: [] }},
           center: [-119.5591, 37.715],
           zoom: 9
-      });
+      }});
 
-      var url = 'https://oin-hotosm.s3.amazonaws.com/5ac626e091b5310010e0d482/0/5ac626e091b5310010e0d483.tif';
+      var url = '{cogurl}';
 
-      map.on('load', () => {
+      map.on('load', () => {{
 
-        const bounds_query = `${endpoint}/bounds?url=${url}`;
+        const bounds_query = `${{endpoint}}/bounds?url=${{url}}`;
         $.getJSON(bounds_query).done()
-          .then(data => {
+          .then(data => {{
             console.log(data);
 
-            map.addSource('tiles', {
+            map.addSource('tiles', {{
                 "type": "raster",
-                "tiles": [`${endpoint}/tiles/{z}/{x}/{y}.png?url=${url}&nodata=0&tile=256`],
+                "tiles": [`${{endpoint}}/tiles/{{z}}/{{x}}/{{y}}.png?url=${{url}}&nodata=0`],
                 "tileSize": 256,
                 "bounds": data.bounds
-            });
+            }});
 
-            map.addLayer({
+            map.addLayer({{
                 "id": "tiles",
                 "source": "tiles",
                 "type": "raster"
-            });
+            }});
 
-            const geojson = {
+            const geojson = {{
               'type': 'FeatureCollection',
               'features': [turf.bboxPolygon(data.bounds)]
-            };
+            }};
 
-            map.addSource('tile', {
+            map.addSource('tile', {{
               'type': 'geojson',
               'data': geojson
-            });
+            }});
 
-            map.addLayer({
+            map.addLayer({{
                 'id': 'tile',
                 'type': 'line',
                 'source': 'tile',
-                'layout': {
+                'layout': {{
                   'line-cap': 'round',
                   'line-join': 'round'
-                },
-                'paint': {
+                }},
+                'paint': {{
                   'line-color': '#1b34db',
                   'line-width': 2
-                }
-            });
+                }}
+            }});
 
             const extent = data.bounds;
             const llb = mapboxgl.LngLatBounds.convert([[extent[0],extent[1]], [extent[2],extent[3]]]);
-            map.fitBounds(llb, {padding: 50});
+            map.fitBounds(llb, {{padding: 50}});
 
-          });
+          }});
 
-      });
+      }});
     </script>
 
   </body>
 </html>
+"""
