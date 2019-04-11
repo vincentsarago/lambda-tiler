@@ -76,7 +76,7 @@ $ curl {your-endpoint}/metadata?url=https://any-file.on/the-internet.tif
 ```
 
 
-#### /tiles/z/x/y.png
+## /tiles/z/x/y.png
 
 *Inputs:*
 - url: any valid url
@@ -91,7 +91,7 @@ $ curl {your-endpoint}/tiles/7/10/10.png?url=https://any-file.on/the-internet.ti
 
 ```
 
-## /viewer
+## /example
 
 *Inputs:*
 None
