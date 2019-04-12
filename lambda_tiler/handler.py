@@ -1,7 +1,6 @@
 """app.main: handle request for lambda-tiler."""
 
 from typing import Tuple, Union
-from typing.io import BinaryIO
 
 import re
 import json
@@ -11,12 +10,19 @@ import numpy
 from rio_tiler import main
 
 from rio_tiler.profiles import img_profiles
-from rio_tiler.utils import array_to_image, get_colormap, expression, linear_rescale
+from rio_tiler.utils import (
+    array_to_image,
+    get_colormap,
+    expression,
+    linear_rescale
+)
 
 from rio_color.operations import parse_operations
 from rio_color.utils import scale_dtype, to_math_type
 
 from lambda_proxy.proxy import API
+
+from lambda_tiler.viewer import viewer_template
 
 APP = API(app_name="cogeo-tiler")
 
@@ -35,12 +41,15 @@ def _postprocess(
         mask = numpy.zeros((tilesize, tilesize), dtype=numpy.uint8)
     else:
         if rescale:
-            rescale_arr = (tuple(map(float, rescale.split(","))),) * tile.shape[0]
+            rescale_arr = (
+                tuple(map(float, rescale.split(","))),) * tile.shape[0]
             for bdx in range(tile.shape[0]):
                 tile[bdx] = numpy.where(
                     mask,
                     linear_rescale(
-                        tile[bdx], in_range=rescale_arr[bdx], out_range=[0, 255]
+                        tile[bdx],
+                        in_range=rescale_arr[bdx],
+                        out_range=[0, 255]
                     ),
                     0,
                 )
@@ -58,6 +67,55 @@ def _postprocess(
 
 class TilerError(Exception):
     """Base exception class."""
+
+
+@APP.route(
+    "/viewer",
+    methods=["GET"],
+    cors=True,
+    payload_compression_method="gzip",
+    binary_b64encode=True,
+)
+@APP.pass_event
+def viewer(
+    event: object,
+    url: str
+) -> Tuple[str, str, str]:
+    """Handle Viewer requests."""
+    endpoint = "https://{domain}/{stage}".format(
+        domain=event['requestContext']['domainName'],
+        stage=event['requestContext']['stage']
+    )
+    html = viewer_template.format(
+        endpoint=endpoint,
+        cogurl=url
+    )
+    return ("OK", "text/html", html)
+
+
+@APP.route(
+    "/example",
+    methods=["GET"],
+    cors=True,
+    payload_compression_method="gzip",
+    binary_b64encode=True,
+)
+@APP.pass_event
+def example(
+    event: object
+) -> Tuple[str, str, str]:
+    """Handle Example requests."""
+    url = 'https://oin-hotosm.s3.amazonaws.com/' \
+          '5ac626e091b5310010e0d482/0/5ac626e091b5310010e0d483.tif'
+    endpoint = "https://{domain}/{stage}".format(
+        domain=event['requestContext']['domainName'],
+        stage=event['requestContext']['stage']
+    )
+    html = viewer_template.format(
+        endpoint=endpoint,
+        cogurl=url
+    )
+    return ("OK", "text/html", html)
 
 
 @APP.route(
@@ -142,7 +200,8 @@ def tile(
     if expr is not None:
         tile, mask = expression(url, x, y, z, expr=expr, tilesize=tilesize)
     else:
-        tile, mask = main.tile(url, x, y, z, indexes=indexes, tilesize=tilesize)
+        tile, mask = main.tile(
+            url, x, y, z, indexes=indexes, tilesize=tilesize)
 
     rtile, rmask = _postprocess(
         tile, mask, tilesize, rescale=rescale, color_formula=color_formula
@@ -155,7 +214,8 @@ def tile(
     return (
         "OK",
         f"image/{ext}",
-        array_to_image(rtile, rmask, img_format=driver, color_map=color_map, **options),
+        array_to_image(rtile, rmask, img_format=driver,
+                       color_map=color_map, **options),
     )
 
 
