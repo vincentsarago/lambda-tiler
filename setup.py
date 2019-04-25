@@ -13,7 +13,10 @@ with open("lambda_tiler/__init__.py") as f:
 # Runtime requirements.
 inst_reqs = ["rio-tiler~=1.2", "lambda-proxy~=3.0", "rio-color"]
 
-extra_reqs = {}
+extra_reqs = {
+    "test": ["pytest", "pytest-cov"],
+    "dev": ["pytest", "pytest-cov", "pre-commit"],
+}
 
 setup(
     name="lambda-tiler",
