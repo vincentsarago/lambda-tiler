@@ -170,6 +170,10 @@ Outputs:
 
 `$ curl {your-endpoint}/tiles/7/10/10.png?url=https://any-file.on/the-internet.tif`
 
+Note: 
+- **expr** and **indexes** cannot be passed used together
+- if no **ext** passed, lambda-tiler will choose the best format (jpg or png) depending on mask (use png for tile with nodata)
+
 ## Example
 
 A web viewer that allows you to pan & zoom on a sample tiff.
