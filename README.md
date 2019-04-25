@@ -1,5 +1,8 @@
 # lambda-tiler
 
+[![CircleCI](https://circleci.com/gh/vincentsarago/lambda-tiler.svg?style=svg)](https://circleci.com/gh/vincentsarago/lambda-tiler)
+[![codecov](https://codecov.io/gh/vincentsarago/lambda-tiler/branch/master/graph/badge.svg)](https://codecov.io/gh/vincentsarago/lambda-tiler)
+
 #### AWS Lambda + rio-tiler to serve tiles from any web hosted files
 
 ![image_preview](https://user-images.githubusercontent.com/10407788/56755674-0fbad500-675e-11e9-8996-f0fae4a1a30c.jpeg)
