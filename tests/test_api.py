@@ -4,6 +4,9 @@ import os
 import json
 
 import pytest
+from mock import patch
+
+import numpy
 
 from lambda_tiler.handler import APP
 
@@ -110,7 +113,7 @@ def test_API_tilejson(event):
     assert headers["Content-Type"] == "application/json"
     body = json.loads(res["body"])
     assert body["tiles"][0].endswith(
-        f"{{z}}/{{x}}/{{y}}.png?url={cog_path}&rescale=-1,1"
+        f"{{z}}/{{x}}/{{y}}.png?url={cog_path}&rescale=-1%2C1"
     )
 
 
@@ -304,3 +307,88 @@ def test_API_tiles(event):
     assert headers["Content-Type"] == "image/jpg"
     assert res["body"]
     assert res["isBase64Encoded"]
+
+
+@patch("lambda_tiler.handler.cogTiler.tile")
+def test_API_tilesMock(tiler, event):
+    """Tests if route pass the right variables."""
+    tilesize = 256
+    tile = numpy.random.rand(3, tilesize, tilesize).astype(numpy.int16)
+    mask = numpy.full((tilesize, tilesize), 255)
+    mask[0:100, 0:100] = 0
+
+    tiler.return_value = (tile, mask)
+
+    # test no ext
+    event["path"] = f"/tiles/7/62/44"
+    event["httpMethod"] = "GET"
+    event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
+    res = APP(event, {})
+    assert res["statusCode"] == 200
+    assert res["body"]
+    assert res["isBase64Encoded"]
+    headers = res["headers"]
+    assert headers["Content-Type"] == "image/png"
+    kwargs = tiler.call_args[1]
+    assert kwargs["tilesize"] == 256
+    vars = tiler.call_args[0]
+    assert vars[1] == 62
+    assert vars[2] == 44
+    assert vars[3] == 7
+
+    # test ext
+    event["path"] = f"/tiles/7/62/44.jpg"
+    event["httpMethod"] = "GET"
+    event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
+    res = APP(event, {})
+    assert res["statusCode"] == 200
+    assert res["body"]
+    assert res["isBase64Encoded"]
+    headers = res["headers"]
+    assert headers["Content-Type"] == "image/jpg"
+    kwargs = tiler.call_args[1]
+    assert kwargs["tilesize"] == 256
+    vars = tiler.call_args[0]
+    assert vars[1] == 62
+    assert vars[2] == 44
+    assert vars[3] == 7
+
+    tilesize = 512
+    tile = numpy.random.rand(3, tilesize, tilesize).astype(numpy.int16)
+    mask = numpy.full((tilesize, tilesize), 255)
+    tiler.return_value = (tile, mask)
+    mask[0:100, 0:100] = 0
+
+    # test scale
+    event["path"] = f"/tiles/7/62/44@2x"
+    event["httpMethod"] = "GET"
+    event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
+    res = APP(event, {})
+    assert res["statusCode"] == 200
+    assert res["body"]
+    assert res["isBase64Encoded"]
+    headers = res["headers"]
+    assert headers["Content-Type"] == "image/png"
+    kwargs = tiler.call_args[1]
+    assert kwargs["tilesize"] == 512
+    vars = tiler.call_args[0]
+    assert vars[1] == 62
+    assert vars[2] == 44
+    assert vars[3] == 7
+
+    # test scale
+    event["path"] = f"/tiles/7/62/44@2x.png"
+    event["httpMethod"] = "GET"
+    event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
+    res = APP(event, {})
+    assert res["statusCode"] == 200
+    assert res["body"]
+    assert res["isBase64Encoded"]
+    headers = res["headers"]
+    assert headers["Content-Type"] == "image/png"
+    kwargs = tiler.call_args[1]
+    assert kwargs["tilesize"] == 512
+    vars = tiler.call_args[0]
+    assert vars[1] == 62
+    assert vars[2] == 44
+    assert vars[3] == 7

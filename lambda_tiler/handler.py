@@ -6,6 +6,7 @@ from typing.io import BinaryIO
 import os
 import re
 import json
+import urllib
 
 import numpy
 
@@ -141,9 +142,7 @@ def tilejson_handler(request: Dict, url: str, tile_format: str = "png", **kwargs
 
     scheme = "http" if host.startswith("127.0.0.1") else "https"
 
-    qs = [f"{k}={v}" for k, v in kwargs.items()]
-    qs = "&".join(qs)
-
+    qs = urllib.parse.urlencode(list(kwargs.items()))
     tile_url = f"{scheme}://{host}/tiles/{{z}}/{{x}}/{{y}}.{tile_format}?url={url}"
     if qs:
         tile_url += f"&{qs}"
@@ -240,14 +239,14 @@ def metadata_handler(
     binary_b64encode=True,
 )
 @APP.route(
-    "/tiles/<int:z>/<int:x>/<int:y>@<int:scale>x",
+    "/tiles/<int:z>/<int:x>/<int:y>.<ext>",
     methods=["GET"],
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
 )
 @APP.route(
-    "/tiles/<int:z>/<int:x>/<int:y>.<ext>",
+    "/tiles/<int:z>/<int:x>/<int:y>@<int:scale>x",
     methods=["GET"],
     cors=True,
     payload_compression_method="gzip",
