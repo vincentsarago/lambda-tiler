@@ -1,3 +1,5 @@
+"""Lambda-tiler: Viewer template."""
+
 viewer_template = """
 <!DOCTYPE html>
 <html>
@@ -39,6 +41,7 @@ viewer_template = """
       }});
 
       var url = '{cogurl}';
+      var qs = '{tile_options}';
 
       map.on('load', () => {{
 
@@ -50,7 +53,7 @@ viewer_template = """
             map.addSource('tiles', {{
                 "type": "raster",
                 "tiles": [
-                  `${{endpoint}}/tiles/{{z}}/{{x}}/{{y}}.png?url=${{url}}&nodata=0`
+                  `${{endpoint}}/tiles/{{z}}/{{x}}/{{y}}.png?url=${{url}}&${{qs}}`
                 ],
                 "tileSize": 256,
                 "bounds": data.bounds

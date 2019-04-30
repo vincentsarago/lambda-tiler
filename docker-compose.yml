@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  image:
+    build: .
+    image: ard-tiler:latest
+
+  package:
+    image: ard-tiler:latest
+    volumes:
+      - '.:/local'
+    command: /local/bin/package.sh
+
+  tests:
+    image: lambci/lambda:build-python3.6
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - GDAL_DATA=/var/runtime/share/gdal
+      - GDAL_CACHEMAX=512
+      - VSI_CACHE=TRUE
+      - VSI_CACHE_SIZE=536870912
+      - CPL_TMPDIR=/tmp
+      - GDAL_HTTP_MERGE_CONSECUTIVE_RANGES=YES
+      - GDAL_HTTP_MULTIPLEX=YES
+      - GDAL_HTTP_VERSION=2
+      - PYTHONWARNINGS=ignore
+      - GDAL_DISABLE_READDIR_ON_OPEN=FALSE
+      - CPL_VSIL_CURL_ALLOWED_EXTENSIONS=.tif,.TIF,.ovr
+    volumes:
+      - '.:/local'
+    command: >
+      bash -c "unzip -q /local/package.zip -d /var/runtime/
+      && sh /local/bin/tests.sh"
