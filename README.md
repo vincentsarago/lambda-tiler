@@ -122,16 +122,16 @@ Outputs:
 
 ```json
 {
-    'address': 's3://myfile.tif',
-    'bbox': [...],
-    'band_descriptions': [(1, 'red'), (2, 'green'), (3, 'blue'), (4, 'nir')]
-    'statistics': {
-        '1': {
-            'pc': [38, 147],
-            'min': 20,
-            'max': 180,
-            'std': 28.123562304138662,
-            'histogram': [
+    "address": "s3://myfile.tif",
+    "bbox": [...],
+    "band_descriptions": [(1, "red"), (2, "green"), (3, "blue"), (4, "nir")],
+    "statistics": {
+        "1": {
+            "pc": [38, 147],
+            "min": 20,
+            "max": 180,
+            "std": 28.123562304138662,
+            "histogram": [
                 [...],
                 [...]
             ]
