@@ -62,6 +62,14 @@ def test_API_viewer(event):
     headers = res["headers"]
     assert headers["Content-Type"] == "text/html"
 
+    event["path"] = f"/example"
+    event["httpMethod"] = "GET"
+    event["queryStringParameters"] = {}
+    res = APP(event, {})
+    assert res["statusCode"] == 200
+    headers = res["headers"]
+    assert headers["Content-Type"] == "text/html"
+
 
 def test_API_tilejson(event):
     """Test /tilejson.json route."""

@@ -114,11 +114,15 @@ def example_handler(event: object) -> Tuple[str, str, str]:
         "https://oin-hotosm.s3.amazonaws.com/"
         "5ac626e091b5310010e0d482/0/5ac626e091b5310010e0d483.tif"
     )
-    endpoint = "https://{domain}/{stage}".format(
-        domain=event["requestContext"]["domainName"],
-        stage=event["requestContext"]["stage"],
-    )
-    html = viewer_template.format(endpoint=endpoint, cogurl=url)
+    host = event["headers"].get("X-Forwarded-Host", event["headers"].get("Host", ""))
+    # Check for API gateway stage
+    if ".execute-api." in host and ".amazonaws.com" in host:
+        stage = event["requestContext"].get("stage", "")
+        host = f"{host}/{stage}"
+    scheme = "http://" if host.startswith("127.0.0.1") else "https://"
+    endpoint = f"{scheme}{host}"
+
+    html = viewer_template.format(endpoint=endpoint, cogurl=url, tile_options="")
     return ("OK", "text/html", html)
 
 
