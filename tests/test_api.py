@@ -328,7 +328,7 @@ def test_API_tilesMock(tiler, event):
     tiler.return_value = (tile, mask)
 
     # test no ext
-    event["path"] = f"/tiles/7/62/44"
+    event["path"] = f"/tiles/7/22/22"
     event["httpMethod"] = "GET"
     event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
     res = APP(event, {})
@@ -340,12 +340,29 @@ def test_API_tilesMock(tiler, event):
     kwargs = tiler.call_args[1]
     assert kwargs["tilesize"] == 256
     vars = tiler.call_args[0]
-    assert vars[1] == 62
-    assert vars[2] == 44
+    assert vars[1] == 22
+    assert vars[2] == 22
     assert vars[3] == 7
 
+    # test no ext
+    event["path"] = f"/tiles/21/62765/4787564"
+    event["httpMethod"] = "GET"
+    event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
+    res = APP(event, {})
+    assert res["statusCode"] == 200
+    assert res["body"]
+    assert res["isBase64Encoded"]
+    headers = res["headers"]
+    assert headers["Content-Type"] == "image/png"
+    kwargs = tiler.call_args[1]
+    assert kwargs["tilesize"] == 256
+    vars = tiler.call_args[0]
+    assert vars[1] == 62765
+    assert vars[2] == 4787564
+    assert vars[3] == 21
+
     # test ext
-    event["path"] = f"/tiles/7/62/44.jpg"
+    event["path"] = f"/tiles/21/62765/4787564.jpg"
     event["httpMethod"] = "GET"
     event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
     res = APP(event, {})
@@ -357,9 +374,9 @@ def test_API_tilesMock(tiler, event):
     kwargs = tiler.call_args[1]
     assert kwargs["tilesize"] == 256
     vars = tiler.call_args[0]
-    assert vars[1] == 62
-    assert vars[2] == 44
-    assert vars[3] == 7
+    assert vars[1] == 62765
+    assert vars[2] == 4787564
+    assert vars[3] == 21
 
     tilesize = 512
     tile = numpy.random.rand(3, tilesize, tilesize).astype(numpy.int16)
@@ -368,7 +385,7 @@ def test_API_tilesMock(tiler, event):
     mask[0:100, 0:100] = 0
 
     # test scale
-    event["path"] = f"/tiles/7/62/44@2x"
+    event["path"] = f"/tiles/21/62765/4787564@2x"
     event["httpMethod"] = "GET"
     event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
     res = APP(event, {})
@@ -380,12 +397,12 @@ def test_API_tilesMock(tiler, event):
     kwargs = tiler.call_args[1]
     assert kwargs["tilesize"] == 512
     vars = tiler.call_args[0]
-    assert vars[1] == 62
-    assert vars[2] == 44
-    assert vars[3] == 7
+    assert vars[1] == 62765
+    assert vars[2] == 4787564
+    assert vars[3] == 21
 
     # test scale
-    event["path"] = f"/tiles/7/62/44@2x.png"
+    event["path"] = f"/tiles/21/62765/4787564@2x.png"
     event["httpMethod"] = "GET"
     event["queryStringParameters"] = {"url": cog_path, "rescale": "0,10000"}
     res = APP(event, {})
@@ -397,6 +414,6 @@ def test_API_tilesMock(tiler, event):
     kwargs = tiler.call_args[1]
     assert kwargs["tilesize"] == 512
     vars = tiler.call_args[0]
-    assert vars[1] == 62
-    assert vars[2] == 44
-    assert vars[3] == 7
+    assert vars[1] == 62765
+    assert vars[2] == 4787564
+    assert vars[3] == 21
