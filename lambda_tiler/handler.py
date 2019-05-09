@@ -236,13 +236,6 @@ def metadata_handler(
 
 
 @APP.route(
-    "/tiles/<int:z>/<int:x>/<int:y>",
-    methods=["GET"],
-    cors=True,
-    payload_compression_method="gzip",
-    binary_b64encode=True,
-)
-@APP.route(
     "/tiles/<int:z>/<int:x>/<int:y>.<ext>",
     methods=["GET"],
     cors=True,
@@ -250,7 +243,7 @@ def metadata_handler(
     binary_b64encode=True,
 )
 @APP.route(
-    "/tiles/<int:z>/<int:x>/<int:y>@<int:scale>x",
+    "/tiles/<int:z>/<int:x>/<int:y>",
     methods=["GET"],
     cors=True,
     payload_compression_method="gzip",
@@ -258,6 +251,13 @@ def metadata_handler(
 )
 @APP.route(
     "/tiles/<int:z>/<int:x>/<int:y>@<int:scale>x.<ext>",
+    methods=["GET"],
+    cors=True,
+    payload_compression_method="gzip",
+    binary_b64encode=True,
+)
+@APP.route(
+    "/tiles/<int:z>/<int:x>/<int:y>@<int:scale>x",
     methods=["GET"],
     cors=True,
     payload_compression_method="gzip",
