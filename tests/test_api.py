@@ -417,3 +417,20 @@ def test_API_tilesMock(tiler, event):
     assert vars[1] == 62765
     assert vars[2] == 4787564
     assert vars[3] == 21
+
+    # test tif
+    event["path"] = f"/tiles/21/62765/4787564.tif"
+    event["httpMethod"] = "GET"
+    event["queryStringParameters"] = {"url": cog_path}
+    res = APP(event, {})
+    assert res["statusCode"] == 200
+    assert res["body"]
+    assert res["isBase64Encoded"]
+    headers = res["headers"]
+    assert headers["Content-Type"] == "image/tif"
+    kwargs = tiler.call_args[1]
+    assert kwargs["tilesize"] == 256
+    vars = tiler.call_args[0]
+    assert vars[1] == 62765
+    assert vars[2] == 4787564
+    assert vars[3] == 21

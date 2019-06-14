@@ -10,8 +10,10 @@ import urllib
 
 import numpy
 
+import mercantile
 import rasterio
 from rasterio import warp
+from rasterio.transform import from_bounds
 
 from rio_tiler import main as cogTiler
 from rio_tiler.mercator import get_zooms
@@ -31,7 +33,7 @@ from lambda_proxy.proxy import API
 
 from lambda_tiler.viewer import viewer_template
 
-APP = API(app_name="cogeo-tiler")
+APP = API(name="lambda-tiler")
 
 
 def _postprocess(
@@ -77,6 +79,7 @@ class TilerError(Exception):
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["viewer"],
 )
 @APP.pass_event
 def viewer_handler(event: object, url: str, **kwargs: Dict) -> Tuple[str, str, str]:
@@ -106,6 +109,7 @@ def viewer_handler(event: object, url: str, **kwargs: Dict) -> Tuple[str, str, s
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["viewer"],
 )
 @APP.pass_event
 def example_handler(event: object) -> Tuple[str, str, str]:
@@ -132,6 +136,7 @@ def example_handler(event: object) -> Tuple[str, str, str]:
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["tiles"],
 )
 @APP.pass_event
 def tilejson_handler(request: Dict, url: str, tile_format: str = "png", **kwargs: Dict):
@@ -176,6 +181,7 @@ def tilejson_handler(request: Dict, url: str, tile_format: str = "png", **kwargs
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["metadata"],
 )
 def bounds_handler(url: str) -> Tuple[str, str, str]:
     """Handle /bounds requests."""
@@ -189,6 +195,7 @@ def bounds_handler(url: str) -> Tuple[str, str, str]:
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["metadata"],
 )
 def metadata_handler(
     url: str,
@@ -241,6 +248,7 @@ def metadata_handler(
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["tiles"],
 )
 @APP.route(
     "/tiles/<int:z>/<int:x>/<int:y>",
@@ -248,6 +256,7 @@ def metadata_handler(
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["tiles"],
 )
 @APP.route(
     "/tiles/<int:z>/<int:x>/<int:y>@<int:scale>x.<ext>",
@@ -255,6 +264,7 @@ def metadata_handler(
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["tiles"],
 )
 @APP.route(
     "/tiles/<int:z>/<int:x>/<int:y>@<int:scale>x",
@@ -262,6 +272,7 @@ def metadata_handler(
     cors=True,
     payload_compression_method="gzip",
     binary_b64encode=True,
+    tag=["tiles"],
 )
 def tile_handler(
     z: int,
@@ -312,12 +323,21 @@ def tile_handler(
 
     if ext == "jpg":
         driver = "jpeg"
-    elif ext == "jp2":
-        driver = "JP2OpenJPEG"
+    elif ext == "tif":
+        driver = "GTiff"
     else:
         driver = ext
 
     options = img_profiles.get(driver, {})
+    if driver == "GTiff":
+        mercator_tile = mercantile.Tile(x=x, y=y, z=z)
+        bounds = mercantile.xy_bounds(mercator_tile)
+        w, s, e, n = bounds
+        dst_transform = from_bounds(w, s, e, n, rtile.shape[1], rtile.shape[2])
+        options = dict(
+            dtype=rtile.dtype, crs={"init": "EPSG:3857"}, transform=dst_transform
+        )
+
     return (
         "OK",
         f"image/{ext}",
@@ -325,7 +345,7 @@ def tile_handler(
     )
 
 
-@APP.route("/favicon.ico", methods=["GET"], cors=True)
+@APP.route("/favicon.ico", methods=["GET"], cors=True, tag=["other"])
 def favicon() -> Tuple[str, str, str]:
     """Favicon."""
     return ("EMPTY", "text/plain", "")
