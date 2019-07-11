@@ -20,13 +20,21 @@ provider:
     GDAL_DISABLE_READDIR_ON_OPEN: EMPTY_DIR
     MAX_THREADS: 20
 
-custom:
-  apigwBinary:
-    types:
-      - '*/*'
+  # Add IAM Role statements to allow the tiler to access files
+  # iamRoleStatements:
+  #   -  Effect: "Allow"
+  #     Action:
+  #       - "s3:ListBucket"
+  #       - "s3:GetObject"
+  #     Resource:
+  #       - "arn:aws:s3:::landsat-pds*"
 
-plugins:
-  - serverless-apigw-binary
+  # Add optional bucket deployement
+  # deploymentBucket: my-bucket-${self:provider.region}
+
+  apiGateway:
+    binaryMediaTypes:
+      - '*/*'
 
 package:
   artifact: package.zip

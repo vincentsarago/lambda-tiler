@@ -3,10 +3,10 @@ version: '3'
 services:
   image:
     build: .
-    image: ard-tiler:latest
+    image: lambda-tiler:latest
 
   package:
-    image: ard-tiler:latest
+    image: lambda-tiler:latest
     volumes:
       - '.:/local'
     command: /local/bin/package.sh
