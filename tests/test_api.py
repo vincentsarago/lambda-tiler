@@ -19,7 +19,7 @@ def event():
     return {
         "path": "/",
         "httpMethod": "GET",
-        "headers": {},
+        "headers": {"Host": "test.apigw.com"},
         "queryStringParameters": {},
     }
 
@@ -90,11 +90,11 @@ def test_API_tilejson(event):
     headers = res["headers"]
     assert headers["Content-Type"] == "application/json"
     body = json.loads(res["body"])
-    print(body)
     assert body["name"] == "cog.tif"
     assert body["tilejson"] == "2.1.0"
-    assert body["tiles"]
-    assert body["tiles"][0].endswith(f"{{z}}/{{x}}/{{y}}.png?url={cog_path}")
+    assert body["tiles"][0] == (
+        f"https://test.apigw.com/tiles/{{z}}/{{x}}/{{y}}.png?url={cog_path}"
+    )
     assert len(body["bounds"]) == 4
     assert len(body["center"]) == 2
     assert body["minzoom"] == 6
@@ -109,7 +109,9 @@ def test_API_tilejson(event):
     headers = res["headers"]
     assert headers["Content-Type"] == "application/json"
     body = json.loads(res["body"])
-    assert body["tiles"][0].endswith(f"{{z}}/{{x}}/{{y}}.jpg?url={cog_path}")
+    assert body["tiles"][0] == (
+        f"https://test.apigw.com/tiles/{{z}}/{{x}}/{{y}}.jpg?url={cog_path}"
+    )
 
     # test with kwargs
     event["path"] = f"/tilejson.json"
@@ -120,8 +122,8 @@ def test_API_tilejson(event):
     headers = res["headers"]
     assert headers["Content-Type"] == "application/json"
     body = json.loads(res["body"])
-    assert body["tiles"][0].endswith(
-        f"{{z}}/{{x}}/{{y}}.png?url={cog_path}&rescale=-1%2C1"
+    assert body["tiles"][0] == (
+        f"https://test.apigw.com/tiles/{{z}}/{{x}}/{{y}}.png?url={cog_path}&rescale=-1%2C1"
     )
 
 

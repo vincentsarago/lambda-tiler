@@ -81,25 +81,15 @@ class TilerError(Exception):
     binary_b64encode=True,
     tag=["viewer"],
 )
-@APP.pass_event
-def viewer_handler(event: object, url: str, **kwargs: Dict) -> Tuple[str, str, str]:
+def viewer_handler(url: str, **kwargs: Dict) -> Tuple[str, str, str]:
     """Handle Viewer requests."""
-    host = event["headers"].get("X-Forwarded-Host", event["headers"].get("Host", ""))
-    # Check for API gateway stage
-    if ".execute-api." in host and ".amazonaws.com" in host:
-        stage = event["requestContext"].get("stage", "")
-        host = f"{host}/{stage}"
-
-    scheme = "http://" if host.startswith("127.0.0.1") else "https://"
-    endpoint = f"{scheme}{host}"
-
     qs = [f"{k}={v}" for k, v in kwargs.items()]
     if qs:
         qs = "&".join(qs)
     else:
         qs = ""
 
-    html = viewer_template.format(endpoint=endpoint, cogurl=url, tile_options=qs)
+    html = viewer_template.format(endpoint=APP.host, cogurl=url, tile_options=qs)
     return ("OK", "text/html", html)
 
 
@@ -111,22 +101,13 @@ def viewer_handler(event: object, url: str, **kwargs: Dict) -> Tuple[str, str, s
     binary_b64encode=True,
     tag=["viewer"],
 )
-@APP.pass_event
-def example_handler(event: object) -> Tuple[str, str, str]:
+def example_handler() -> Tuple[str, str, str]:
     """Handle Example requests."""
     url = (
         "https://oin-hotosm.s3.amazonaws.com/"
         "5ac626e091b5310010e0d482/0/5ac626e091b5310010e0d483.tif"
     )
-    host = event["headers"].get("X-Forwarded-Host", event["headers"].get("Host", ""))
-    # Check for API gateway stage
-    if ".execute-api." in host and ".amazonaws.com" in host:
-        stage = event["requestContext"].get("stage", "")
-        host = f"{host}/{stage}"
-    scheme = "http://" if host.startswith("127.0.0.1") else "https://"
-    endpoint = f"{scheme}{host}"
-
-    html = viewer_template.format(endpoint=endpoint, cogurl=url, tile_options="")
+    html = viewer_template.format(endpoint=APP.host, cogurl=url, tile_options="")
     return ("OK", "text/html", html)
 
 
@@ -138,21 +119,10 @@ def example_handler(event: object) -> Tuple[str, str, str]:
     binary_b64encode=True,
     tag=["tiles"],
 )
-@APP.pass_event
-def tilejson_handler(request: Dict, url: str, tile_format: str = "png", **kwargs: Dict):
+def tilejson_handler(url: str, tile_format: str = "png", **kwargs: Dict):
     """Handle /tilejson.json requests."""
-    host = request["headers"].get(
-        "X-Forwarded-Host", request["headers"].get("Host", "")
-    )
-    # Check for API gateway stage
-    if ".execute-api." in host and ".amazonaws.com" in host:
-        stage = request["requestContext"].get("stage", "")
-        host = f"{host}/{stage}"
-
-    scheme = "http" if host.startswith("127.0.0.1") else "https"
-
     qs = urllib.parse.urlencode(list(kwargs.items()))
-    tile_url = f"{scheme}://{host}/tiles/{{z}}/{{x}}/{{y}}.{tile_format}?url={url}"
+    tile_url = f"{APP.host}/tiles/{{z}}/{{x}}/{{y}}.{tile_format}?url={url}"
     if qs:
         tile_url += f"&{qs}"
 

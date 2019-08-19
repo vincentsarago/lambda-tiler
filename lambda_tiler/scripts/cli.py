@@ -10,6 +10,9 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 
 from lambda_tiler.handler import APP
 
+# Local server is unsecure
+APP.https = False
+
 
 class ThreadingSimpleServer(ThreadingMixIn, HTTPServer):
     """MultiThread."""
