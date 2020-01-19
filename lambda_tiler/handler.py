@@ -1,6 +1,6 @@
 """app.main: handle request for lambda-tiler."""
 
-from typing import BinaryIO, Dict, Tuple, Union
+from typing import Any, BinaryIO, Dict, Tuple, Union
 
 import os
 import re
@@ -31,7 +31,9 @@ from rio_color.utils import scale_dtype, to_math_type
 
 from lambda_proxy.proxy import API
 
+from lambda_tiler.ogc import wmts_template
 from lambda_tiler.viewer import viewer_template
+
 
 APP = API(name="lambda-tiler")
 
@@ -210,6 +212,57 @@ def metadata_handler(
         histogram_range=histogram_range,
     )
     return ("OK", "application/json", json.dumps(info))
+
+
+@APP.route(
+    "/wmts",
+    methods=["GET"],
+    cors=True,
+    payload_compression_method="gzip",
+    binary_b64encode=True,
+    tag=["OGC"],
+)
+def _wmts(
+    mosaicid: str = None,
+    url: str = None,
+    tile_format: str = "png",
+    tile_scale: int = 1,
+    title: str = "Cloud Optimizied GeoTIFF Mosaic",
+    **kwargs: Any,
+) -> Tuple[str, str, str]:
+    """Handle /wmts requests."""
+    if tile_scale is not None and isinstance(tile_scale, str):
+        tile_scale = int(tile_scale)
+
+    kwargs.pop("SERVICE", None)
+    kwargs.pop("REQUEST", None)
+    kwargs.update(dict(url=url))
+    query_string = urllib.parse.urlencode(list(kwargs.items()))
+    query_string = query_string.replace(
+        "&", "&amp;"
+    )  # & is an invalid character in XML
+
+    with rasterio.open(url) as src_dst:
+        bounds = warp.transform_bounds(
+            src_dst.crs, "epsg:4326", *src_dst.bounds, densify_pts=21
+        )
+        minzoom, maxzoom = get_zooms(src_dst)
+
+    return (
+        "OK",
+        "application/xml",
+        wmts_template(
+            f"{APP.host}",
+            os.path.basename(url),
+            query_string,
+            minzoom=minzoom,
+            maxzoom=maxzoom,
+            bounds=bounds,
+            tile_scale=tile_scale,
+            tile_format=tile_format,
+            title=title,
+        ),
+    )
 
 
 @APP.route(
