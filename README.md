@@ -31,7 +31,7 @@ $ docker-compose run --rm package
 $ docker-compose run --rm tests
 ```
 
-Note: Docker image from https://github.com/RemotePixel/amazonlinux-gdal
+Note: Docker image from https://github.com/RemotePixel/amazonlinux
 
 #### Deploy to AWS
 
