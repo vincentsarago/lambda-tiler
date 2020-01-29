@@ -1,3 +1,5 @@
 """Lambda-tiler."""
 
-__version__ = "2.1.1"
+import pkg_resources
+
+version = pkg_resources.get_distribution(__package__).version

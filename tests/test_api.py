@@ -429,7 +429,7 @@ def test_API_tilesMock(tiler, event):
     assert res["body"]
     assert res["isBase64Encoded"]
     headers = res["headers"]
-    assert headers["Content-Type"] == "image/tif"
+    assert headers["Content-Type"] == "image/tiff"
     kwargs = tiler.call_args[1]
     assert kwargs["tilesize"] == 256
     vars = tiler.call_args[0]

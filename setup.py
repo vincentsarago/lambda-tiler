@@ -1,17 +1,9 @@
-"""Setup remotepixel-tiler"""
+"""Setup lambda-tiler."""
 
 from setuptools import setup, find_packages
 
-with open("lambda_tiler/__init__.py") as f:
-    for line in f:
-        if line.find("__version__") >= 0:
-            version = line.split("=")[1].strip()
-            version = version.strip('"')
-            version = version.strip("'")
-            continue
-
 # Runtime requirements.
-inst_reqs = ["rio-tiler~=1.2", "lambda-proxy~=4.1.4", "rio-color"]
+inst_reqs = ["lambda-proxy~=5.0", "rio-tiler", "rio-color"]
 
 extra_reqs = {
     "test": ["mock", "pytest", "pytest-cov"],
@@ -20,7 +12,7 @@ extra_reqs = {
 
 setup(
     name="lambda-tiler",
-    version=version,
+    version="3.0.0",
     description=u"""""",
     long_description=u"",
     python_requires=">=3",

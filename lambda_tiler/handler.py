@@ -1,12 +1,12 @@
 """app.main: handle request for lambda-tiler."""
 
-from typing import Dict, Tuple, Union
-from typing.io import BinaryIO
+from typing import Any, BinaryIO, Dict, Tuple, Union
 
 import os
 import re
 import json
 import urllib
+from io import BytesIO
 
 import numpy
 
@@ -31,7 +31,9 @@ from rio_color.utils import scale_dtype, to_math_type
 
 from lambda_proxy.proxy import API
 
+from lambda_tiler.ogc import wmts_template
 from lambda_tiler.viewer import viewer_template
+
 
 APP = API(name="lambda-tiler")
 
@@ -83,7 +85,7 @@ class TilerError(Exception):
 )
 def viewer_handler(url: str, **kwargs: Dict) -> Tuple[str, str, str]:
     """Handle Viewer requests."""
-    qs = [f"{k}={v}" for k, v in kwargs.items()]
+    qs = urllib.parse.urlencode(list(kwargs.items()))
     if qs:
         qs = "&".join(qs)
     else:
@@ -128,7 +130,7 @@ def tilejson_handler(url: str, tile_format: str = "png", **kwargs: Dict):
 
     with rasterio.open(url) as src_dst:
         bounds = warp.transform_bounds(
-            *[src_dst.crs, "epsg:4326"] + list(src_dst.bounds), densify_pts=21
+            src_dst.crs, "epsg:4326", *src_dst.bounds, densify_pts=21
         )
         center = [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2]
         minzoom, maxzoom = get_zooms(src_dst)
@@ -171,12 +173,12 @@ def metadata_handler(
     url: str,
     pmin: Union[str, float] = 2.0,
     pmax: Union[str, float] = 98.0,
-    nodata: Union[str, float, int] = None,
-    indexes: Union[str, Tuple, int] = None,
-    overview_level: Union[str, int] = None,
+    nodata: Union[str, float, int, None] = None,
+    indexes: Union[str, Tuple, int, None] = None,
+    overview_level: Union[str, int, None] = None,
     max_size: Union[str, int] = 1024,
     histogram_bins: Union[str, int] = 20,
-    histogram_range: Union[str, int] = None,
+    histogram_range: Union[str, int, None] = None,
 ) -> Tuple[str, str, str]:
     """Handle /metadata requests."""
     pmin = float(pmin) if isinstance(pmin, str) else pmin
@@ -210,6 +212,57 @@ def metadata_handler(
         histogram_range=histogram_range,
     )
     return ("OK", "application/json", json.dumps(info))
+
+
+@APP.route(
+    "/wmts",
+    methods=["GET"],
+    cors=True,
+    payload_compression_method="gzip",
+    binary_b64encode=True,
+    tag=["OGC"],
+)
+def _wmts(
+    mosaicid: str = None,
+    url: str = None,
+    tile_format: str = "png",
+    tile_scale: int = 1,
+    title: str = "Cloud Optimizied GeoTIFF Mosaic",
+    **kwargs: Any,
+) -> Tuple[str, str, str]:
+    """Handle /wmts requests."""
+    if tile_scale is not None and isinstance(tile_scale, str):
+        tile_scale = int(tile_scale)
+
+    kwargs.pop("SERVICE", None)
+    kwargs.pop("REQUEST", None)
+    kwargs.update(dict(url=url))
+    query_string = urllib.parse.urlencode(list(kwargs.items()))
+    query_string = query_string.replace(
+        "&", "&amp;"
+    )  # & is an invalid character in XML
+
+    with rasterio.open(url) as src_dst:
+        bounds = warp.transform_bounds(
+            src_dst.crs, "epsg:4326", *src_dst.bounds, densify_pts=21
+        )
+        minzoom, maxzoom = get_zooms(src_dst)
+
+    return (
+        "OK",
+        "application/xml",
+        wmts_template(
+            f"{APP.host}",
+            os.path.basename(url),
+            query_string,
+            minzoom=minzoom,
+            maxzoom=maxzoom,
+            bounds=bounds,
+            tile_scale=tile_scale,
+            tile_format=tile_format,
+            title=title,
+        ),
+    )
 
 
 @APP.route(
@@ -291,15 +344,11 @@ def tile_handler(
     if color_map:
         color_map = get_colormap(color_map, format="gdal")
 
-    if ext == "jpg":
-        driver = "jpeg"
-    elif ext == "tif":
-        driver = "GTiff"
-    else:
-        driver = ext
-
+    driver = "jpeg" if ext == "jpg" else ext
     options = img_profiles.get(driver, {})
-    if driver == "GTiff":
+    if ext == "tif":
+        ext = "tiff"
+        driver = "GTiff"
         mercator_tile = mercantile.Tile(x=x, y=y, z=z)
         bounds = mercantile.xy_bounds(mercator_tile)
         w, s, e, n = bounds
@@ -308,11 +357,19 @@ def tile_handler(
             dtype=rtile.dtype, crs={"init": "EPSG:3857"}, transform=dst_transform
         )
 
-    return (
-        "OK",
-        f"image/{ext}",
-        array_to_image(rtile, rmask, img_format=driver, color_map=color_map, **options),
-    )
+    if ext == "npy":
+        sio = BytesIO()
+        numpy.save(sio, (rtile, mask))
+        sio.seek(0)
+        return ("OK", "application/x-binary", sio.getvalue())
+    else:
+        return (
+            "OK",
+            f"image/{ext}",
+            array_to_image(
+                rtile, rmask, img_format=driver, color_map=color_map, **options
+            ),
+        )
 
 
 @APP.route("/favicon.ico", methods=["GET"], cors=True, tag=["other"])

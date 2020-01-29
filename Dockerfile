@@ -1,11 +1,10 @@
-FROM remotepixel/amazonlinux-gdal:2.4.2
+FROM remotepixel/amazonlinux:gdal3.0-py3.7-cogeo
 
-RUN pip3 install pip -U
+WORKDIR /tmp
 
-ENV PACKAGE_PREFIX /tmp/python
+ENV PYTHONUSERBASE=/var/task
 
 COPY setup.py setup.py
 COPY lambda_tiler/ lambda_tiler/
 
-# Install dependencies
-RUN CFLAGS="--std=c99" pip3 install . --no-binary numpy,rasterio -t $PACKAGE_PREFIX -U
+RUN pip install . --user
